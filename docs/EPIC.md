@@ -119,12 +119,37 @@ Each block ends in a state you can run locally (`pnpm dev`) and test. "Test" col
 - Deployed URL runs the full Tokyo demo in < 45s
 - Reset → run → reset works repeatedly on prod
 
-### Block 7 — Stretch (only if ahead)
+### Block 7 — Visual polish: make it look like a product  `[added by user request — judging weighs looks heavily]`
+Goal: a judge glancing at the screen for 5 seconds should understand "agents are hiring agents" without narration. Every panel earns its place by being legible from 3 metres.
+
+**Direction**
+- One visual language: dark canvas (zinc-950), card surfaces with 1px hairline borders and subtle inner glow; a single display font for numbers (tabular, mono) so balances/scores align; a 4-colour semantic system used everywhere — indigo = orchestrator, emerald = money/success, red = denial/failure, amber = in-progress/redaction.
+- Motion tells the story: every state change animates *once* (enter/flash), nothing loops except the active pipeline node. Target: ≤300ms transitions, `prefers-reduced-motion` respected.
+- Hero layout: pipeline becomes a horizontal flow across the top (USER → ORCHESTRATOR → MARKET → AGENTS → SETTLEMENT → RESULT) with animated "packets" travelling along the edges when events pass; the three columns below become the detail.
+
+**Build**
+- `framer-motion` (or CSS-only if it fights us) for enter/exit and layout animations of candidate cards, transfers, permission entries
+- **Agent graph view** (center, toggle with the card list): orchestrator node in the middle, hired agents orbiting; edges light up on `agent.message`, coins travel on `ledger.transfer`, a red shield flashes on `permission.checked denied`
+- Live counters with number roll animation: orchestrator balance, total spent, agents hired, events processed
+- Candidate cards: avatar glyph per capability, score bar animates from 0, breakdown segments with legend; hired card "stamps" HIRED
+- Permission denial becomes a **full-width toast/banner** for ~3s ("ConciergePlusAgent asked for passport → blocked by marketplace") in addition to the log entry
+- Itinerary: styled like a boarding pass / travel card — hero header with destination + dates + total in EUR, flights/hotel/day tabs, print-friendly
+- Marketplace `/market`: card grid with sparkline of reputation, hover for profile JSON; live balance badges
+- Empty state with a one-line pitch and a "Run the Tokyo demo" CTA; loading skeletons instead of blank panels
+- Favicon + OG image + page titles; remove Next boilerplate assets
+- Responsive down to 1024px; projector check at 1920×1080 with browser zoom 125%
+
+**Test**
+- Screenshot pass at 1920×1080 @125%: every panel legible, no overflow, no layout shift during a run
+- Run 3× in a row: animations never stack or jank; toast fires exactly once per denial
+- `prefers-reduced-motion` → no motion but identical information
+
+### Block 8 — Stretch (only if ahead)
 - Worker failure → orchestrator re-hires runner-up; failed agent's reputation drops
 - Second objective (e.g. competitor research) to prove generality
 - Negotiation stub: worker may counter-offer price within ±20%
 
-### Block 8 — Rehearsal
+### Block 9 — Rehearsal
 - Run the demo 5× on prod, record a backup video, finalize pitch
 
 ---

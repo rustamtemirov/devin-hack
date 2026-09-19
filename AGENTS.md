@@ -124,3 +124,10 @@ pnpm test   # 18 tests (+ run-state reducer)
 - `DATABASE_URL` unset → embedded PGlite (`.data/pglite`); set → Neon via `@neondatabase/serverless` HTTP driver.
 - Protocol spec lives in `src/protocol/` (Zod schemas = types).
 - Shared marketplace queries in `src/marketplace/registry.ts`.
+
+## Build-dir isolation (verified root cause of "vendor-chunks" / "React Client Manifest" / "reading 'call'" 500s)
+Two `next dev` processes in this directory share `.next/` and corrupt each other's manifests. The user's dev server owns `.next/`. Any other server (tests, verification) MUST use its own dist dir and DB:
+```sh
+NEXT_DIST_DIR=.next-test PGLITE_DATA_DIR=/tmp/bazaar-test pnpm dev -p 3100
+```
+`.next-*/` is gitignored. If the user's server shows those errors: stop it, `rm -rf .next`, start again. Never run `pnpm build` while a dev server uses `.next/` (use `NEXT_DIST_DIR=.next-build pnpm build`).
