@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Exec(node)",
+      "Exec(pnpm create)",
+      "Exec(mv)"
+    ]
+  }
+}
