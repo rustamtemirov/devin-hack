@@ -84,7 +84,13 @@ export default function DemoPage() {
                 : "bg-zinc-800 text-zinc-400"
             }`}
           >
-            {state.planSource === "llm" ? "LLM plan" : "fallback plan"}
+            {state.planSource === "llm"
+              ? (() => {
+                  const m = (state.result as { llm_model?: string } | undefined)
+                    ?.llm_model;
+                  return m ? `LLM plan · ${m}` : "LLM plan";
+                })()
+              : "fallback plan"}
           </span>
         )}
         {replaying && (

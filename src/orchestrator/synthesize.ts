@@ -13,11 +13,18 @@ export interface SubtaskResult {
 
 export interface Synthesis {
   markdown: string;
-  source: "llm" | "fallback";
+  source: "llm" | "template";
+  error?: string;
 }
 
-const SYSTEM = `Write a concise, well-structured trip itinerary in Markdown from these structured agent results.
-Include a budget table in EUR. Don't invent data not present in the results.`;
+const SYSTEM = `Write a concise, well-structured trip itinerary in Markdown (GFM) from these structured agent results.
+Format rules:
+- The output MUST start with "# <Destination> — <N>-day itinerary" as the first line.
+- Then sections, in this order: "## Flights", "## Stay", "## Day by day", "## Budget".
+- Use GFM tables for the flight options, stay options, and the budget breakdown in EUR.
+- Day by day: one "**Day N**" line per day with bullet items below it.
+- Don't invent data not present in the results; note any failed subtask briefly in its section.
+- Cap the output at ~600 words.`;
 
 interface FlightOption {
   airline: string;
@@ -220,11 +227,12 @@ export async function synthesize(p: {
   plan: Plan;
   results: SubtaskResult[];
 }): Promise<Synthesis> {
-  if (llmEnabled()) {
+  if (llmEnabled() && process.env.LLM_SYNTHESIS === "1") {
     try {
       const { text } = await withTimeout(
         generateText({
           model: getModel(),
+          maxRetries: 0,
           system: SYSTEM,
           prompt: `Objective: ${p.objective}\n\nPlan: ${JSON.stringify(p.plan, null, 2)}\n\nResults:\n${JSON.stringify(p.results, null, 2)}`,
         }),
@@ -232,12 +240,19 @@ export async function synthesize(p: {
         "synthesize"
       );
       return { markdown: text, source: "llm" };
-    } catch {
-      // fall through to template
+    } catch (e) {
+      const reason = (
+        e instanceof Error ? `${e.constructor.name}: ${e.message}` : String(e)
+      ).slice(0, 120);
+      return {
+        markdown: fallbackSynthesis(p.objective, p.plan, p.results),
+        source: "template",
+        error: reason,
+      };
     }
   }
   return {
     markdown: fallbackSynthesis(p.objective, p.plan, p.results),
-    source: "fallback",
+    source: "template",
   };
 }

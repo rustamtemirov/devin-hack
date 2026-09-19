@@ -106,8 +106,10 @@ curl -s -X POST localhost:3000/api/runs -d '{"objective":"hi"}'   # 400
 ```
 
 ### Env vars
-- `ANTHROPIC_API_KEY` — unset → deterministic fallback plan + template itinerary (fully works)
-- `ANTHROPIC_MODEL` — default `claude-sonnet-4-5`
+- `ANTHROPIC_API_KEY` — LLM provider 1 (precedence); `ANTHROPIC_MODEL` default `claude-sonnet-4-5`
+- `GOOGLE_GENERATIVE_AI_API_KEY` — LLM provider 2, used when no Anthropic key; `GOOGLE_MODEL` default `gemini-3.5-flash`. Note: Gemini free tier has tight quota; 2.5-flash is retired for new users.
+- `LLM_SYNTHESIS=1` — opt-in: let the LLM write the itinerary (slow, ~20s+ on free tier); default is the deterministic template
+- No key → deterministic fallback plan + template itinerary (fully works)
 - `STAGE_DELAY_MS` — pacing between orchestration stages, default 600, `0` disables
 - `AGENT_LATENCY_SCALE` — scales agent sleeps, default 0.3, `0` disables
 - `PGLITE_DATA_DIR` — override PGlite data dir (see concurrency warning above)
@@ -144,8 +146,10 @@ denial `Toast` banners, `Itinerary` travel card (`data-testid=itinerary`),
 framer-motion everywhere with `useReducedMotion` respected.
 
 ## Deploy
-Vercel env vars: `DATABASE_URL` (Neon, required), `ANTHROPIC_API_KEY` (optional —
-fallback planner/synthesizer works without it), `STAGE_DELAY_MS=400` (snappier demo pacing).
+Vercel env vars: `DATABASE_URL` (Neon, required), `ANTHROPIC_API_KEY` or
+`GOOGLE_GENERATIVE_AI_API_KEY` (optional — fallback planner + template itinerary
+work without either), `LLM_SYNTHESIS=1` (optional, slow on free tier),
+`STAGE_DELAY_MS=400` (snappier demo pacing).
 `POST /api/runs` has `export const maxDuration = 60` — one run must finish within 60s.
 Prod smoke test:
 ```sh

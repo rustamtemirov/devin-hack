@@ -156,9 +156,11 @@ runs on embedded PGlite — zero external accounts.
 | env var | effect |
 |---|---|
 | `DATABASE_URL` | unset → PGlite at `.data/pglite`; set → Neon |
-| `ANTHROPIC_API_KEY` | enables LLM plan + synthesis; fallback works without it |
-| `GOOGLE_GENERATIVE_AI_API_KEY` | alternate LLM provider (coming) |
+| `ANTHROPIC_API_KEY` | enables LLM plan + synthesis (takes precedence) |
+| `GOOGLE_GENERATIVE_AI_API_KEY` | enables the same via Gemini, when no Anthropic key is set (free tier: tight quota) |
+| `LLM_SYNTHESIS` | `1` lets the LLM write the itinerary too; default is the deterministic template |
 | `ANTHROPIC_MODEL` | default `claude-sonnet-4-5` |
+| `GOOGLE_MODEL` | default `gemini-3.5-flash` |
 | `STAGE_DELAY_MS` | pacing between orchestration stages (default 600; 400 on prod) |
 | `AGENT_LATENCY_SCALE` | scales simulated agent latency (default 0.3, 0 disables) |
 | `PGLITE_DATA_DIR` | override the embedded DB dir |

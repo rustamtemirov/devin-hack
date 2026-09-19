@@ -11,6 +11,9 @@ importers:
       '@ai-sdk/anthropic':
         specifier: 2.0.102
         version: 2.0.102(zod@4.6.5)
+      '@ai-sdk/google':
+        specifier: 2.0.97
+        version: 2.0.97(zod@4.6.5)
       '@electric-sql/pglite':
         specifier: ^0.5.8
         version: 0.5.8
@@ -95,6 +98,12 @@ packages:
 
   '@ai-sdk/gateway@2.0.151':
     resolution: {integrity: sha512-FVTfQkpMNrVLsEVkeLwft+f9dJQhi6R0qNkfvKi81nupqDqW6NFXKNnpjslNrM4+VCrxeibBk+6RM5VYYJfecA==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      zod: ^3.25.76 || ^4.1.8
+
+  '@ai-sdk/google@2.0.97':
+    resolution: {integrity: sha512-IGv9wGvbeuNBUVXzqwuOZTHXZUUEuO/aUKfSw2iv7smhalBC1FFuth5WLapJQHb1nusoDup5nELopzXV28vcxA==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
@@ -3223,6 +3232,12 @@ snapshots:
       '@ai-sdk/provider': 2.0.4
       '@ai-sdk/provider-utils': 3.0.37(zod@4.6.5)
       '@vercel/oidc': 3.1.0
+      zod: 4.6.5
+
+  '@ai-sdk/google@2.0.97(zod@4.6.5)':
+    dependencies:
+      '@ai-sdk/provider': 2.0.4
+      '@ai-sdk/provider-utils': 3.0.37(zod@4.6.5)
       zod: 4.6.5
 
   '@ai-sdk/provider-utils@3.0.37(zod@4.6.5)':

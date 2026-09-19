@@ -178,7 +178,11 @@ export function applyEvent(state: RunState, e: MarketplaceEvent): RunState {
     case "agent.message": {
       const planSource =
         state.planSource ??
-        (e.content.includes("fallback plan") ? "fallback" : undefined);
+        (e.content.includes("fallback plan")
+          ? "fallback"
+          : e.content.startsWith("Plan by")
+            ? "llm"
+            : undefined);
       const stage =
         e.task_id === "plan" && state.stage === "started"
           ? advance(state.stage, "decomposing")

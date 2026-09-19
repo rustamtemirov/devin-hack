@@ -9,6 +9,7 @@ import { dispatch } from "@/marketplace/dispatch";
 import { decompose } from "./decompose";
 import { scoreCandidates } from "./score";
 import { synthesize, type SubtaskResult } from "./synthesize";
+import { llmLabel, llmProvider } from "@/llm/client";
 
 const STAGE_DELAY_MS = Number(process.env.STAGE_DELAY_MS ?? "600");
 const pause = () =>
@@ -148,12 +149,26 @@ export async function runOrchestration(p: {
       plan,
       results,
     });
+    if (synthesis.error) {
+      await emitter.emit({
+        type: "agent.message",
+        task_id: "synthesize",
+        from: "orchestrator",
+        to: "user",
+        content: /quota|429/i.test(synthesis.error)
+          ? `LLM quota exceeded (${llmProvider()}); using fallback itinerary`
+          : `LLM synthesis unavailable (${synthesis.error}); using fallback itinerary`,
+      });
+    }
 
     const totalCost = settled.reduce((s, x) => s + x.response.cost, 0);
     const result = {
       itinerary_markdown: synthesis.markdown,
       plan_source: planSource,
       synthesis_source: synthesis.source,
+      llm_model: planSource === "llm" || synthesis.source === "llm"
+        ? llmLabel()
+        : undefined,
       total_cost_credits: Math.round(totalCost * 1e4) / 1e4,
       hires: settled.map((s) => ({
         task_id: s.task.id,

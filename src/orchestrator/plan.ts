@@ -19,7 +19,18 @@ export const PlanSchema = z.object({
     .array(
       z.object({
         capability: z.enum(SUBTASK_CAPABILITIES),
-        inputs: z.record(z.string(), z.unknown()),
+        inputs: z.object({
+          origin: z.string().optional(),
+          destination: z.string().optional(),
+          travel_dates: z.string().optional(),
+          budget: z.number().optional(),
+          amount: z.number().optional(),
+          from_currency: z.string().optional(),
+          to_currency: z.string().optional(),
+          query: z.string().optional(),
+          text: z.string().optional(),
+          target_language: z.string().optional(),
+        }),
         budget_share: z.number().min(0).max(1),
         rationale: z.string(),
       })
@@ -37,7 +48,9 @@ function addDays(iso: string, days: number): string {
 }
 
 export function fallbackPlan(objective: string): Plan {
-  const destMatch = objective.match(/\bto ([A-Z][a-zA-Z]+)/);
+  const destMatch = objective.match(
+    /\b(?:to|in|around|visit(?:ing)?)\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+)?)/
+  );
   const destination = destMatch?.[1] ?? "Tokyo";
   const daysMatch = objective.match(/(\d+)-day/);
   const days = daysMatch ? Number(daysMatch[1]) : 4;
