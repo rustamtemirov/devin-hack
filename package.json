@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "db:generate": "drizzle-kit generate",
-    "db:push": "node -e \"require('fs').mkdirSync('.data',{recursive:true})\" && drizzle-kit push",
+    "db:push": "node -e \"require('fs').mkdirSync('.data',{recursive:true})\" && drizzle-kit push --force",
     "db:seed": "tsx src/db/seed.ts",
     "db:reset": "tsx src/db/seed.ts"
   },

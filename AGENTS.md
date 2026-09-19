@@ -54,6 +54,33 @@ curl -s -X POST localhost:3000/api/dev/simulate-task -H 'content-type: applicati
 curl -s localhost:3000/api/runs/<run_id>                        # run detail; 404 for unknown id
 ```
 
+## Verify Block 2
+```sh
+pnpm test   # 11 tests (permissions + reputation)
+
+curl -s -X POST localhost:3000/api/admin/reset
+# dispatch (dev route): { worker_id, capability, inputs, budget, run_id?, requester_id? }
+curl -s -X POST localhost:3000/api/dev/dispatch -H 'content-type: application/json' \
+  -d '{"worker_id":"flight-01","capability":"flight_search","inputs":{"origin":"Berlin","destination":"Tokyo","travel_dates":"2026-10-01..2026-10-05","budget":1200,"passport_number":"X123"},"budget":0.5}'
+# → completed, pays agent price, reputation bumps, emits task.status/agent.message/agent.hired/ledger.transfer/reputation.updated
+# villain: worker_id hotel-04 → completed + permission_events denied for access_identity_documents
+# flight-02 budget 0.3 → failed BUDGET_EXCEEDED, no txn
+# currency-01 inputs {"amount":1200,"from_currency":"EUR","to_currency":"JPY"} → converted 194880
+# flight-01 without travel_dates → failed MISSING_REQUIREMENTS
+```
+
+### Schema changed in Block 2
+All money/ratio columns went `real` → `doublePrecision`. `pnpm db:push` now uses `drizzle-kit push --force` (non-interactive, auto-approves type changes). If push fails or data is corrupted, wipe and reseed:
+```sh
+rm -rf .data && pnpm db:push && pnpm db:seed
+```
+PGlite allows only ONE process per data dir. `pnpm dev` holds `.data/pglite` open — while a dev server runs, `pnpm db:push`/`db:seed` will abort. Either stop the dev server first, or use a scratch dir via `PGLITE_DATA_DIR`:
+```sh
+PGLITE_DATA_DIR=/tmp/bazaar-test pnpm db:push
+PGLITE_DATA_DIR=/tmp/bazaar-test pnpm dev -p 3100   # run dev against scratch DB
+```
+`AGENT_LATENCY_SCALE` (default 0.3) scales agent sleeps; `0` disables.
+
 ## Notes
 - `DATABASE_URL` unset → embedded PGlite (`.data/pglite`); set → Neon via `@neondatabase/serverless` HTTP driver.
 - Protocol spec lives in `src/protocol/` (Zod schemas = types).

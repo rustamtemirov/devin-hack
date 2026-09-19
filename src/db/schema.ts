@@ -2,7 +2,7 @@ import {
   pgTable,
   text,
   jsonb,
-  real,
+  doublePrecision,
   integer,
   boolean,
   timestamp,
@@ -14,7 +14,7 @@ export const agents = pgTable("agents", {
   description: text("description").notNull(),
   capabilities: jsonb("capabilities").$type<string[]>().notNull(),
   pricingModel: text("pricing_model").notNull(),
-  price: real("price").notNull(),
+  price: doublePrecision("price").notNull(),
   currency: text("currency").notNull(),
   latencyMsP50: integer("latency_ms_p50").notNull(),
   requiredPermissions: jsonb("required_permissions")
@@ -32,14 +32,14 @@ export const wallets = pgTable("wallets", {
   agentId: text("agent_id")
     .primaryKey()
     .references(() => agents.id),
-  balance: real("balance").notNull(),
+  balance: doublePrecision("balance").notNull(),
 });
 
 export const transactions = pgTable("transactions", {
   id: text("id").primaryKey(),
   fromAgentId: text("from_agent_id").notNull(),
   toAgentId: text("to_agent_id").notNull(),
-  amount: real("amount").notNull(),
+  amount: doublePrecision("amount").notNull(),
   taskId: text("task_id"),
   type: text("type").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -50,8 +50,8 @@ export const runs = pgTable("runs", {
   objective: text("objective").notNull(),
   status: text("status").notNull(),
   orchestratorId: text("orchestrator_id").notNull(),
-  budgetCredits: real("budget_credits").notNull(),
-  spentCredits: real("spent_credits").notNull().default(0),
+  budgetCredits: doublePrecision("budget_credits").notNull(),
+  spentCredits: doublePrecision("spent_credits").notNull().default(0),
   result: jsonb("result"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   finishedAt: timestamp("finished_at"),
@@ -67,7 +67,7 @@ export const tasks = pgTable("tasks", {
   status: text("status").notNull(),
   request: jsonb("request"),
   response: jsonb("response"),
-  cost: real("cost").notNull().default(0),
+  cost: doublePrecision("cost").notNull().default(0),
   startedAt: timestamp("started_at"),
   finishedAt: timestamp("finished_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -77,8 +77,8 @@ export const reputation = pgTable("reputation", {
   agentId: text("agent_id")
     .primaryKey()
     .references(() => agents.id),
-  rating: real("rating").notNull(),
-  successRate: real("success_rate").notNull(),
+  rating: doublePrecision("rating").notNull(),
+  successRate: doublePrecision("success_rate").notNull(),
   completedTasks: integer("completed_tasks").notNull(),
   failedTasks: integer("failed_tasks").notNull(),
   avgLatencyMs: integer("avg_latency_ms").notNull(),

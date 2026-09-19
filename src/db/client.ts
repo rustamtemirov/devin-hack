@@ -16,4 +16,7 @@ export const db: Db =
   globalForDb.__bazaarDb ??
   (globalForDb.__bazaarDb = process.env.DATABASE_URL
     ? (drizzleNeon(neon(process.env.DATABASE_URL), { schema }) as unknown as Db)
-    : drizzlePglite(new PGlite(".data/pglite"), { schema }));
+    : drizzlePglite(
+        new PGlite(process.env.PGLITE_DATA_DIR ?? ".data/pglite"),
+        { schema }
+      ));

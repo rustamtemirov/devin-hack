@@ -24,6 +24,12 @@ type RunDetail = {
     cost: number;
   }[];
   transactions: Txn[];
+  permission_events?: {
+    agentId: string;
+    permission: string;
+    decision: string;
+    reason: string;
+  }[];
   events: { type: string; ts: number; [k: string]: unknown }[];
 };
 
@@ -95,6 +101,24 @@ export default function DevConsole() {
   const [workerId, setWorkerId] = useState("flight-01");
   const [cost, setCost] = useState("0.2");
   const [simResp, setSimResp] = useState<unknown>();
+
+  const [dCapability, setDCapability] = useState("flight_search");
+  const [dWorkerId, setDWorkerId] = useState("flight-01");
+  const [dInputs, setDInputs] = useState(
+    JSON.stringify(
+      {
+        origin: "Berlin",
+        destination: "Tokyo",
+        travel_dates: "2026-10-01..2026-10-05",
+        budget: 1200,
+        passport_number: "X1234567",
+      },
+      null,
+      2
+    )
+  );
+  const [dBudget, setDBudget] = useState("0.5");
+  const [dResp, setDResp] = useState<unknown>();
 
   const prevBalances = useRef<Map<string, number>>(new Map());
   const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -198,9 +222,33 @@ export default function DevConsole() {
     await refreshState();
   };
 
+  const doDispatch = async () => {
+    let inputs: Record<string, unknown> = {};
+    try {
+      inputs = JSON.parse(dInputs);
+    } catch {
+      setDResp({ error: "inputs textarea is not valid JSON" });
+      return;
+    }
+    const { data } = await post("/api/dev/dispatch", {
+      worker_id: dWorkerId,
+      capability: dCapability,
+      inputs,
+      budget: Number(dBudget),
+    });
+    setDResp(data);
+    const id = (data as { run_id?: string })?.run_id;
+    if (id) {
+      setRunId(id);
+      await refreshRun(id);
+    }
+    await refreshState();
+  };
+
   const workersForCapability = agents.filter((a) =>
     a.capabilities.includes(capability)
   );
+  const dWorkers = agents.filter((a) => a.capabilities.includes(dCapability));
 
   useEffect(() => {
     const first = workersForCapability[0];
@@ -210,6 +258,14 @@ export default function DevConsole() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [capability, agents]);
+
+  useEffect(() => {
+    const first = dWorkers[0];
+    if (first && !dWorkers.some((a) => a.id === dWorkerId)) {
+      setDWorkerId(first.id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dCapability, agents]);
 
   const permCheck = (
     permResp as { check?: { decision?: string; reason?: string } } | undefined
@@ -420,6 +476,87 @@ export default function DevConsole() {
             </div>
             <JsonPre value={simResp} />
           </Panel>
+
+          <Panel title="Dispatch">
+            <div className="flex gap-2 items-center flex-wrap">
+              <select
+                value={dCapability}
+                onChange={(e) => setDCapability(e.target.value)}
+                className="bg-zinc-800 rounded px-2 py-1 text-sm"
+              >
+                {CAPABILITIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={dWorkerId}
+                onChange={(e) => setDWorkerId(e.target.value)}
+                className="bg-zinc-800 rounded px-2 py-1 text-sm"
+              >
+                {dWorkers.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.id} ({a.name})
+                  </option>
+                ))}
+              </select>
+              <input
+                type="number"
+                step="0.01"
+                value={dBudget}
+                onChange={(e) => setDBudget(e.target.value)}
+                className="bg-zinc-800 rounded px-2 py-1 text-sm w-24"
+                title="budget credits"
+              />
+              <button
+                onClick={doDispatch}
+                className="rounded bg-indigo-700 hover:bg-indigo-600 px-3 py-1.5 text-sm"
+              >
+                Dispatch
+              </button>
+            </div>
+            <label className="block text-xs text-zinc-500 mt-3 mb-1">
+              inputs (JSON)
+            </label>
+            <textarea
+              value={dInputs}
+              onChange={(e) => setDInputs(e.target.value)}
+              rows={6}
+              className="w-full bg-zinc-800 rounded px-2 py-1 text-xs font-mono"
+            />
+            {(
+              dResp as { response?: { status?: string; error?: { code?: string } } } | undefined
+            )?.response && (
+              <div className="mt-3 flex items-center gap-2">
+                <span
+                  className={`rounded px-2 py-0.5 text-xs font-bold ${
+                    (dResp as { response: { status: string } }).response.status === "completed"
+                      ? "bg-green-900 text-green-300"
+                      : "bg-red-900 text-red-300"
+                  }`}
+                >
+                  {(dResp as { response: { status: string } }).response.status.toUpperCase()}
+                </span>
+                {(
+                  dResp as { response: { error?: { code?: string; message?: string } } }
+                ).response.error && (
+                  <span className="text-xs text-red-400 font-mono">
+                    {
+                      (dResp as { response: { error: { code: string; message: string } } })
+                        .response.error.code
+                    }
+                    :{" "}
+                    {
+                      (dResp as { response: { error: { code: string; message: string } } })
+                        .response.error.message
+                    }
+                  </span>
+                )}
+              </div>
+            )}
+            <JsonPre value={dResp} />
+          </Panel>
         </div>
 
         <div className="flex flex-col gap-4">
@@ -524,6 +661,53 @@ export default function DevConsole() {
                     ))}
                   </tbody>
                 </table>
+                {runDetail.permission_events &&
+                  runDetail.permission_events.length > 0 && (
+                    <div className="mb-3">
+                      <div className="text-xs text-zinc-500 mb-1">
+                        Permission events
+                      </div>
+                      {runDetail.permission_events.map((pe, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center gap-2 text-xs py-0.5"
+                        >
+                          <span className="font-mono text-zinc-400">
+                            {pe.agentId}
+                          </span>
+                          <span className="font-mono">{pe.permission}</span>
+                          <span
+                            className={`rounded px-1.5 py-0.5 font-bold ${
+                              pe.decision === "allowed"
+                                ? "bg-green-900 text-green-300"
+                                : "bg-red-900 text-red-300"
+                            }`}
+                          >
+                            {pe.decision.toUpperCase()}
+                          </span>
+                          <span className="text-zinc-500">{pe.reason}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                {runDetail.events.some((e) => e.type === "agent.message") && (
+                  <div className="mb-3">
+                    <div className="text-xs text-zinc-500 mb-1">Messages</div>
+                    {runDetail.events
+                      .filter((e) => e.type === "agent.message")
+                      .map((e, i) => (
+                        <div key={i} className="text-xs py-0.5">
+                          <span className="font-mono text-indigo-400">
+                            {String(e.from)} → {String(e.to)}
+                          </span>
+                          <span className="text-zinc-400">
+                            {" "}
+                            {String(e.content)}
+                          </span>
+                        </div>
+                      ))}
+                  </div>
+                )}
                 <div className="flex flex-col gap-1">
                   {runDetail.events.map((e, i) => (
                     <div
