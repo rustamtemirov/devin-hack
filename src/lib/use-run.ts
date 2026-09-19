@@ -6,6 +6,7 @@ import { parseSseStream } from "./sse-client";
 import {
   applyEvent,
   initialRunState,
+  reduceEvents,
   type RunState,
 } from "./run-state";
 
@@ -22,6 +23,9 @@ export function useRun() {
   const [replaying, setReplaying] = useState(false);
   const [agents, setAgents] = useState<Record<string, AgentProfile>>({});
   const [wallets, setWallets] = useState<WalletMap>({});
+  const [previousScores, setPreviousScores] = useState<
+    Record<string, Record<string, number>>
+  >({});
   const abortRef = useRef<AbortController | null>(null);
   const mountedRef = useRef(true);
 
@@ -77,6 +81,37 @@ export function useRun() {
     };
   }, [fetchWallets]);
 
+  // Scores from the most recent *other* completed run, for delta display.
+  const loadPrevScores = useCallback(async (currentRunId?: string) => {
+    try {
+      const res = await fetch("/api/runs?limit=5");
+      const data = await res.json();
+      const prev = (data.runs ?? []).find(
+        (r: { id: string; status: string }) =>
+          r.status === "completed" && r.id !== currentRunId
+      );
+      if (!prev) {
+        setPreviousScores({});
+        return;
+      }
+      const detail = await (await fetch(`/api/runs/${prev.id}`)).json();
+      const st = reduceEvents(detail.events ?? []);
+      const map: Record<string, Record<string, number>> = {};
+      for (const [cap, cands] of Object.entries(st.candidates)) {
+        map[cap] = Object.fromEntries(cands.map((c) => [c.agent_id, c.score]));
+      }
+      if (mountedRef.current) setPreviousScores(map);
+    } catch {
+      // best-effort
+    }
+  }, []);
+
+  useEffect(() => {
+    if (state.stage === "idle" || state.stage === "completed") {
+      void loadPrevScores(state.runId);
+    }
+  }, [state.stage, state.runId, loadPrevScores]);
+
   const applyTransfer = useCallback((from: string, to: string, amt: number) => {
     setWallets((w) => ({
       ...w,
@@ -122,5 +157,5 @@ export function useRun() {
     await fetchWallets();
   }, [fetchWallets]);
 
-  return { state, start, reset, replaying, agents, wallets };
+  return { state, start, reset, replaying, agents, wallets, previousScores };
 }

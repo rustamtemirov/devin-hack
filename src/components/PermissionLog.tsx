@@ -1,4 +1,7 @@
+"use client";
+
 import type { AgentProfile } from "@/protocol";
+import { Badge, Card } from "./ui";
 import type { PermissionView } from "@/lib/run-state";
 
 export function PermissionLog({
@@ -9,10 +12,7 @@ export function PermissionLog({
   agents: Record<string, AgentProfile>;
 }) {
   return (
-    <div className="rounded border border-zinc-800 bg-zinc-900/40 p-3">
-      <h2 className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-2">
-        Permissions
-      </h2>
+    <Card title="Permissions">
       {permissions.length === 0 ? (
         <p className="text-zinc-600 text-xs">No permission requests yet</p>
       ) : (
@@ -20,34 +20,26 @@ export function PermissionLog({
           {permissions.map((p, i) => (
             <div
               key={i}
-              className={`rounded p-2 text-xs ${
+              className={`rounded-lg p-2 text-xs ${
                 p.decision === "denied"
                   ? "animate-[flashRed_1s] border border-red-800"
-                  : "border border-zinc-800"
+                  : "border border-[var(--hairline)]"
               }`}
             >
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-zinc-200">
                   {agents[p.agent_id]?.name ?? p.agent_id}
                 </span>
-                <span className="font-mono text-amber-300">
-                  {p.permission}
-                </span>
-                <span
-                  className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${
-                    p.decision === "denied"
-                      ? "bg-red-900 text-red-300"
-                      : "bg-green-900 text-green-300"
-                  }`}
-                >
+                <span className="font-mono text-amber-300">{p.permission}</span>
+                <Badge tone={p.decision === "denied" ? "red" : "emerald"}>
                   {p.decision.toUpperCase()}
-                </span>
+                </Badge>
               </div>
               <div className="text-zinc-500 mt-0.5">{p.reason}</div>
             </div>
           ))}
         </div>
       )}
-    </div>
+    </Card>
   );
 }

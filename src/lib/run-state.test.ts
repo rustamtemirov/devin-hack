@@ -138,6 +138,7 @@ describe("applyEvent / reduceEvents", () => {
     expect(s.stage).toBe("completed");
     expect(s.spent).toBeCloseTo(0.35);
     expect(s.planSource).toBe("fallback");
+    expect(s.startedTs).toBe(1);
   });
 
   it("stage never regresses on late market.searched after agent.hired", () => {

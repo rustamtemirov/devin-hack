@@ -120,6 +120,24 @@ pnpm test   # 18 tests (+ run-state reducer)
 # orchestrator balance ticking down 10.00 → ~9.58, reputation arrows, itinerary slide-in.
 ```
 
+## Verify Block 5
+```sh
+pnpm shots    # playwright → shots/*.png (01-idle, 02-run-N, 03-complete, 04-market,
+              # 05-fit-864 @1536×864, 06-second-run, 07-drawer, 08-market)
+              # prints toast counts at denial for both runs + console errors
+              # BASE_URL env overrides target (default localhost:3100)
+```
+Pass B layout: one-screen demo at 1536×864 (nav → 40px objective bar →
+hero pipeline + 2×2 counters → AgentGraph + collapsible compact Candidates |
+right col: Ledger → Permissions → Messages(160px scroll) → Reputation).
+AgentDrawer via `useDrawer()` (provider mounted in layout.tsx); clicking any
+agent name/avatar opens it. `/api/agents` returns `balance`; `/api/agents/:id`
+returns `recent_tasks`. Score deltas vs previous completed run shown on rows.
+UI: shared `Nav`, `Card/Badge/Stat/Dot/Empty` primitives in `src/components/ui.tsx`,
+`HeroPipeline` (horizontal, packet animation), `Counters` (spring numbers),
+denial `Toast` banners, `Itinerary` travel card (`data-testid=itinerary`),
+framer-motion everywhere with `useReducedMotion` respected.
+
 ## Notes
 - `DATABASE_URL` unset → embedded PGlite (`.data/pglite`); set → Neon via `@neondatabase/serverless` HTTP driver.
 - Protocol spec lives in `src/protocol/` (Zod schemas = types).

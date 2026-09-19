@@ -77,6 +77,7 @@ export interface ReputationView {
 
 export interface RunState {
   runId?: string;
+  startedTs?: number;
   objective?: string;
   budget?: number;
   stage: Stage;
@@ -117,6 +118,7 @@ export function applyEvent(state: RunState, e: MarketplaceEvent): RunState {
       return {
         ...state,
         runId: e.run_id,
+        startedTs: e.ts,
         objective: e.objective,
         budget: e.budget,
         stage: advance(state.stage, "started"),

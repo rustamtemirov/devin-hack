@@ -16,6 +16,9 @@
 # next.js
 /.next/
 /.next-*/
+
+# screenshots
+/shots/
 /out/
 
 # production

@@ -144,6 +144,9 @@ function fallbackSynthesis(
     lines.push("");
     for (const d of r.days ?? []) {
       lines.push(`**Day ${d.day}**`);
+      if (d.items.length === 0) {
+        lines.push("- _Free time / travel day._");
+      }
       for (const item of d.items) {
         lines.push(
           `- ${item.time} — ${item.title} (${item.area}) ~€${item.cost_eur}`

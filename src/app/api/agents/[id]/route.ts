@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAgent } from "@/marketplace/registry";
+import { getAgent, recentTasksForAgent } from "@/marketplace/registry";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +22,6 @@ export async function GET(
       failed_tasks: found.reputation.failedTasks,
       avg_latency_ms: found.reputation.avgLatencyMs,
     },
-    recent_tasks: [],
+    recent_tasks: await recentTasksForAgent(id),
   });
 }

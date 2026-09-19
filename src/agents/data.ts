@@ -216,7 +216,14 @@ export function activityDays(
   for (let d = 1; d <= numDays; d++) {
     const count = int(rng, 2, 3);
     const items: ActivityItem[] = [];
-    for (let i = 0; i < count && pool.length; i++) {
+    for (let i = 0; i < count; i++) {
+      if (pool.length === 0) {
+        pool.push(
+          ...ACTIVITY_POOLS[style].filter(
+            (a) => !items.some((x) => x.title === a.title)
+          )
+        );
+      }
       const idx = Math.floor(rng() * pool.length);
       const [act] = pool.splice(idx, 1);
       items.push({

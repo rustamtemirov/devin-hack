@@ -1,6 +1,6 @@
 import { and, asc, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { db } from "@/db/client";
-import { agents, reputation, wallets } from "@/db/schema";
+import { agents, reputation, tasks, wallets } from "@/db/schema";
 import type { AgentProfile, Permission } from "@/protocol";
 
 type AgentRow = typeof agents.$inferSelect;
@@ -42,6 +42,41 @@ export async function listAgents(opts?: {
   return rows
     .filter((r) => opts?.includeOrchestrator || !r.agent.isOrchestrator)
     .map((r) => toProfile(r.agent, r.reputation));
+}
+
+export type AgentProfileWithBalance = AgentProfile & { balance: number };
+
+export async function listAgentsWithBalances(opts?: {
+  includeOrchestrator?: boolean;
+}): Promise<AgentProfileWithBalance[]> {
+  const profiles = await listAgents(opts);
+  const walletRows = await db.select().from(wallets);
+  const balances = new Map(walletRows.map((w) => [w.agentId, w.balance]));
+  return profiles.map((p) => ({ ...p, balance: balances.get(p.id) ?? 0 }));
+}
+
+export async function recentTasksForAgent(agentId: string, limit = 10) {
+  const rows = await db
+    .select({
+      id: tasks.id,
+      runId: tasks.runId,
+      capability: tasks.capability,
+      status: tasks.status,
+      cost: tasks.cost,
+      finishedAt: tasks.finishedAt,
+    })
+    .from(tasks)
+    .where(eq(tasks.workerId, agentId))
+    .orderBy(desc(tasks.createdAt))
+    .limit(limit);
+  return rows.map((r) => ({
+    id: r.id,
+    run_id: r.runId,
+    capability: r.capability,
+    status: r.status,
+    cost: r.cost,
+    finished_at: r.finishedAt,
+  }));
 }
 
 export interface AgentSearch {

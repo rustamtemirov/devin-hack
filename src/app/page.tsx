@@ -2,69 +2,85 @@
 
 import { useState } from "react";
 import { Nav } from "@/components/Nav";
-import { Pipeline } from "@/components/Pipeline";
+import { HeroPipeline } from "@/components/HeroPipeline";
+import { Counters } from "@/components/Counters";
+import { AgentGraph } from "@/components/AgentGraph";
 import { Candidates } from "@/components/Candidates";
 import { MessageLog } from "@/components/MessageLog";
 import { Ledger } from "@/components/Ledger";
 import { PermissionLog } from "@/components/PermissionLog";
 import { Reputation } from "@/components/Reputation";
 import { Itinerary } from "@/components/Itinerary";
+import { Toasts } from "@/components/Toast";
+import { Card } from "@/components/ui";
 import { useRun } from "@/lib/use-run";
 
+const DEFAULT_OBJECTIVE = "Plan a 4-day trip to Tokyo under €1,200.";
+
 export default function DemoPage() {
-  const { state, start, reset, replaying, agents, wallets } = useRun();
-  const [objective, setObjective] = useState(
-    "Plan a 4-day trip to Tokyo under €1,200."
-  );
+  const { state, start, reset, replaying, agents, wallets, previousScores } =
+    useRun();
+  const [objective, setObjective] = useState(DEFAULT_OBJECTIVE);
   const [budget, setBudget] = useState("2");
 
   const canRun =
     state.stage === "idle" ||
     state.stage === "completed" ||
     state.stage === "failed";
-  const runStartTs = state.messages[0]?.ts;
+  const hiredCount = Object.values(state.candidates)
+    .flat()
+    .filter((c) => c.hired).length;
+  const eventCount =
+    state.messages.length +
+    state.transfers.length +
+    state.permissions.length +
+    Object.keys(state.tasks).length;
+
+  const topWallets = Object.entries(wallets)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 p-6">
+    <div className="min-h-screen p-4">
       <Nav />
+      <Toasts permissions={state.permissions} agents={agents} />
 
-      {/* Objective bar */}
-      <div className="flex gap-2 items-center mb-5 flex-wrap">
+      {/* Objective bar — single 40px row */}
+      <div className="flex gap-2 items-center h-10 mb-3">
         <input
           value={objective}
           onChange={(e) => setObjective(e.target.value)}
-          className="flex-1 min-w-64 bg-zinc-900 border border-zinc-800 rounded px-3 py-2 text-sm"
+          className="flex-1 min-w-40 h-9 bg-[var(--card)] border border-[var(--hairline)] rounded-lg px-3 text-sm"
           placeholder="Describe the trip…"
         />
-        <div className="flex items-center gap-1">
-          <input
-            type="number"
-            step="0.5"
-            min="0"
-            value={budget}
-            onChange={(e) => setBudget(e.target.value)}
-            className="w-20 bg-zinc-900 border border-zinc-800 rounded px-2 py-2 text-sm font-mono"
-          />
-          <span className="text-xs text-zinc-500">credits</span>
-        </div>
+        <input
+          type="number"
+          step="0.5"
+          min="0"
+          value={budget}
+          onChange={(e) => setBudget(e.target.value)}
+          className="w-16 h-9 bg-[var(--card)] border border-[var(--hairline)] rounded-lg px-2 text-sm font-mono tabular-nums"
+        />
+        <span className="text-xs text-zinc-500">cr</span>
         <button
           onClick={() => start(objective, Number(budget))}
           disabled={!canRun}
-          className="rounded bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-700 px-5 py-2 text-sm font-medium"
+          className="h-9 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-700 px-5 text-sm font-medium"
+          data-testid="run-button"
         >
           {canRun ? "Run" : "Running…"}
         </button>
         <button
           onClick={reset}
-          className="rounded border border-zinc-700 hover:border-zinc-500 px-4 py-2 text-sm"
+          className="h-9 rounded-lg border border-[var(--hairline)] hover:border-zinc-500 px-4 text-sm"
         >
           Reset
         </button>
         {state.planSource && (
           <span
-            className={`rounded px-2 py-1 text-xs font-mono ${
+            className={`rounded-md px-2 py-1 text-xs font-mono ${
               state.planSource === "llm"
-                ? "bg-indigo-900 text-indigo-300"
+                ? "bg-indigo-500/15 text-indigo-300"
                 : "bg-zinc-800 text-zinc-400"
             }`}
           >
@@ -76,35 +92,62 @@ export default function DemoPage() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-[280px_1fr_360px] gap-4">
-        {/* Left: pipeline */}
-        <div>
-          <Pipeline state={state} />
-        </div>
+      {/* Hero pipeline + counters */}
+      <div className="flex gap-3 mb-3 items-stretch">
+        <HeroPipeline state={state} />
+        <Counters
+          balance={wallets.orchestrator}
+          spent={state.spent}
+          hired={hiredCount}
+          events={eventCount}
+        />
+      </div>
 
-        {/* Center: candidates + messages */}
-        <div className="flex flex-col gap-4 min-w-0">
-          <Candidates state={state} agents={agents} />
-          <MessageLog
-            messages={state.messages}
+      <div className="grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-3">
+        <div className="flex flex-col gap-3 min-w-0">
+          <AgentGraph
+            state={state}
             agents={agents}
-            runStartTs={runStartTs}
+            balance={wallets.orchestrator}
+          />
+          <Candidates
+            state={state}
+            agents={agents}
+            onRunDemo={() => start(DEFAULT_OBJECTIVE, Number(budget))}
+            previousScores={previousScores}
           />
         </div>
 
-        {/* Right: ledger / permissions / reputation */}
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3">
           <Ledger
             orchestratorBalance={wallets.orchestrator}
             transfers={state.transfers}
             spent={state.spent}
           />
           <PermissionLog permissions={state.permissions} agents={agents} />
+          <MessageLog
+            messages={state.messages}
+            agents={agents}
+            runStartTs={state.startedTs}
+          />
           <Reputation reputation={state.reputation} agents={agents} />
+          {state.stage === "idle" && topWallets.length > 0 && (
+            <Card title="Wallets">
+              <div className="flex flex-col gap-1">
+                {topWallets.map(([id, bal]) => (
+                  <div key={id} className="text-xs flex justify-between">
+                    <span className="text-zinc-300 font-mono">{id}</span>
+                    <span className="font-mono tabular-nums text-zinc-400">
+                      {bal.toFixed(2)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
         </div>
       </div>
 
-      {/* Bottom: itinerary */}
       <Itinerary result={state.result} />
     </div>
   );
