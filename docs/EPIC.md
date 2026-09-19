@@ -128,7 +128,7 @@ Absorbs the remaining items of the old "economy feedback" block (reputation delt
 
 ### Block 6 — Vercel deploy
 **Build**
-- **TODO (deferred by user): create GitHub repo, add remote, push `main`** — prerequisite for Vercel Git integration. Repo is local-only until then.
+- ~~GitHub repo~~ done: https://github.com/rustamtemirov/devin-hack · Vercel: https://devin-hack.vercel.app (Framework Preset must be Next.js; Deployment Protection off)
 - Neon project + `DATABASE_URL` in Vercel env; `pnpm db:push` and seed against Neon; deploy
 - `ANTHROPIC_API_KEY` in Vercel env; smoke-test the LLM path on prod
 - README with pitch, architecture, protocol, run instructions
