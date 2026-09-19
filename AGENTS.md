@@ -81,6 +81,10 @@ PGLITE_DATA_DIR=/tmp/bazaar-test pnpm dev -p 3100   # run dev against scratch DB
 ```
 `AGENT_LATENCY_SCALE` (default 0.3) scales agent sleeps; `0` disables.
 
+### Concurrency warning (verified)
+PGlite has **no file lock**. Running `pnpm db:seed` (or `db:push`) against a data dir while `pnpm dev` is using it does NOT fail or hang — the second process reports success, but the two instances diverge (the dev server keeps serving its own view) and the on-disk dir is corrupted: the next process to open it crashes with `RuntimeError: Aborted()`. Recovery: `rm -rf <dir> && pnpm db:push && pnpm db:seed`. Always stop the dev server before db scripts on `.data`, or use separate `PGLITE_DATA_DIR`s.
+The dev server now closes PGlite cleanly on SIGINT/SIGTERM (see `src/db/client.ts`), and DB instantiation is lazy so Next worker processes never open the data dir.
+
 ## Notes
 - `DATABASE_URL` unset → embedded PGlite (`.data/pglite`); set → Neon via `@neondatabase/serverless` HTTP driver.
 - Protocol spec lives in `src/protocol/` (Zod schemas = types).
