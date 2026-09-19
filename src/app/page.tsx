@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { listAgents } from "@/marketplace/registry";
 
 export const dynamic = "force-dynamic";
@@ -18,9 +19,14 @@ export default async function Home() {
   const agents = await listAgents();
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 p-8">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold">Bazaar — Agent Marketplace</h1>
-        <p className="text-zinc-500 font-mono text-sm mt-1">amp/0.1</p>
+      <header className="mb-8 flex items-baseline justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Bazaar — Agent Marketplace</h1>
+          <p className="text-zinc-500 font-mono text-sm mt-1">amp/0.1</p>
+        </div>
+        <Link href="/dev" className="text-indigo-400 text-sm hover:underline">
+          Dev Console →
+        </Link>
       </header>
       <table className="w-full text-sm border-collapse">
         <thead>

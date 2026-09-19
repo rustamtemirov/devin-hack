@@ -45,6 +45,8 @@ curl -s -X POST localhost:3000/api/dev/transfer -H 'content-type: application/js
 curl -s -X POST localhost:3000/api/dev/transfer -H 'content-type: application/json' \
   -d '{"from":"orchestrator","to":"nope","amount":0.1}'         # 400 UNKNOWN_WALLET
 curl -s "localhost:3000/api/ledger/transactions?limit=3"        # newest first
+curl -s localhost:3000/api/ledger/wallets | jq '.wallets | length'  # 16
+open http://localhost:3000/dev                                   # Dev Console UI
 curl -s -X POST localhost:3000/api/dev/permission-check -H 'content-type: application/json' \
   -d '{"permission":"access_identity_documents","envelope":["share_destination"],"inputs":{"destination":"Tokyo","passport_number":"X"}}'
 curl -s -X POST localhost:3000/api/dev/simulate-task -H 'content-type: application/json' \

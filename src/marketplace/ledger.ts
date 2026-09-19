@@ -1,6 +1,6 @@
-import { and, desc, eq, gte, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, or, sql } from "drizzle-orm";
 import { db } from "@/db/client";
-import { transactions, wallets } from "@/db/schema";
+import { agents, transactions, wallets } from "@/db/schema";
 
 export type Transaction = typeof transactions.$inferSelect;
 
@@ -104,6 +104,26 @@ export async function getBalance(agentId: string): Promise<number> {
     throw new LedgerError("UNKNOWN_WALLET", `no wallet for ${agentId}`);
   }
   return round4(rows[0].balance);
+}
+
+export async function listWallets(): Promise<
+  { agent_id: string; name: string; balance: number }[]
+> {
+  const rows = await db
+    .select({
+      agentId: wallets.agentId,
+      name: agents.name,
+      balance: wallets.balance,
+      isOrchestrator: agents.isOrchestrator,
+    })
+    .from(wallets)
+    .innerJoin(agents, eq(agents.id, wallets.agentId))
+    .orderBy(desc(agents.isOrchestrator), asc(wallets.agentId));
+  return rows.map((r) => ({
+    agent_id: r.agentId,
+    name: r.name,
+    balance: r.balance,
+  }));
 }
 
 export async function listTransactions(opts?: {
