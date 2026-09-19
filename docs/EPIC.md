@@ -109,6 +109,7 @@ Each block ends in a state you can run locally (`pnpm dev`) and test. "Test" col
 
 ### Block 6 — Demo polish + Vercel deploy
 **Build**
+- **TODO (deferred by user): create GitHub repo, add remote, push `main`** — prerequisite for Vercel Git integration. Repo is local-only until then.
 - Transitions/animations on pipeline and ledger; artificial 300–800ms pacing between stages (env-configurable, off in tests)
 - Reset button (calls `/api/admin/reset`)
 - Neon project + `DATABASE_URL` in Vercel env; `pnpm db:push` and seed against Neon; deploy
