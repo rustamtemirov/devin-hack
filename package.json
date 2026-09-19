@@ -9,11 +9,11 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "shots": "tsx scripts/screenshot.ts",
-    "db:generate": "drizzle-kit generate",
-    "db:push": "node -e \"require('fs').mkdirSync('.data',{recursive:true})\" && drizzle-kit push --force",
-    "db:seed": "tsx src/db/seed.ts",
-    "db:reset": "tsx src/db/seed.ts"
+    "shots": "node --env-file-if-exists=.env.local ./node_modules/tsx/dist/cli.mjs scripts/screenshot.ts",
+    "db:generate": "node --env-file-if-exists=.env.local ./node_modules/drizzle-kit/bin.cjs generate",
+    "db:push": "node -e \"require('fs').mkdirSync('.data',{recursive:true})\" && node --env-file-if-exists=.env.local ./node_modules/drizzle-kit/bin.cjs push --force",
+    "db:seed": "node --env-file-if-exists=.env.local ./node_modules/tsx/dist/cli.mjs src/db/seed.ts",
+    "db:reset": "node --env-file-if-exists=.env.local ./node_modules/tsx/dist/cli.mjs src/db/seed.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "2.0.102",

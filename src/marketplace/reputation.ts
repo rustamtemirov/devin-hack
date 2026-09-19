@@ -31,7 +31,14 @@ export function applyOutcome(
     completedTasks,
     failedTasks,
     successRate: r4(completedTasks / total),
-    rating: r2(clamp(rep.rating + (o.success ? 0.02 : -0.2), 0, 5)),
+    rating: r2(
+      clamp(
+        rep.rating +
+          (o.success ? (rep.rating > 4.95 ? 0.005 : 0.01) : -0.15),
+        0,
+        5
+      )
+    ),
     avgLatencyMs: Math.round(rep.avgLatencyMs * 0.8 + o.latencyMs * 0.2),
   };
 }

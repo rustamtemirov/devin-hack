@@ -6,12 +6,17 @@ pnpm install
 ```
 
 ## Database (PGlite local, no accounts needed)
+The `db:*` and `shots` scripts auto-load `.env.local` (via `node --env-file-if-exists`) —
+no shell sourcing needed. `.env.local` is gitignored; copy `.env.example`.
 ```sh
 pnpm db:push    # drizzle-kit push — PGlite at .data/pglite when DATABASE_URL unset, Neon when set
 pnpm db:seed    # truncate + insert 16 agents (15 specialists + orchestrator)
 pnpm db:reset   # same as db:seed
 pnpm db:generate # generate SQL migrations into ./drizzle (optional)
 ```
+⚠️ With `DATABASE_URL` set in `.env.local`, `pnpm db:seed`/`db:reset`/`db:push`
+operate on the **shared Neon database** (seed truncates all tables). Be deliberate —
+unset DATABASE_URL or use `PGLITE_DATA_DIR` for scratch work.
 
 ## Dev
 ```sh
@@ -137,6 +142,19 @@ UI: shared `Nav`, `Card/Badge/Stat/Dot/Empty` primitives in `src/components/ui.t
 `HeroPipeline` (horizontal, packet animation), `Counters` (spring numbers),
 denial `Toast` banners, `Itinerary` travel card (`data-testid=itinerary`),
 framer-motion everywhere with `useReducedMotion` respected.
+
+## Deploy
+Vercel env vars: `DATABASE_URL` (Neon, required), `ANTHROPIC_API_KEY` (optional —
+fallback planner/synthesizer works without it), `STAGE_DELAY_MS=400` (snappier demo pacing).
+`POST /api/runs` has `export const maxDuration = 60` — one run must finish within 60s.
+Prod smoke test:
+```sh
+BASE_URL=https://<deployment>.vercel.app
+curl -s $BASE_URL/api/agents | jq '.agents | length'              # 15
+curl -sN -X POST $BASE_URL/api/runs -H 'content-type: application/json' \
+  -d '{"objective":"Plan a 4-day trip to Tokyo under €1,200.","budget":2}' | head -40
+pnpm shots BASE_URL=$BASE_URL                                    # full screenshot sweep
+```
 
 ## Notes
 - `DATABASE_URL` unset → embedded PGlite (`.data/pglite`); set → Neon via `@neondatabase/serverless` HTTP driver.

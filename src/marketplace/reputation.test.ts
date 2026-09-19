@@ -14,14 +14,27 @@ describe("applyOutcome", () => {
     const r = applyOutcome(base, { success: true, latencyMs: 1000 });
     expect(r.completedTasks).toBe(184);
     expect(r.failedTasks).toBe(6);
-    expect(r.rating).toBe(4.82);
+    expect(r.rating).toBe(4.81);
     expect(r.avgLatencyMs).toBe(1160);
   });
 
-  it("failure drops rating by 0.2 and increments failed", () => {
+  it("failure drops rating by 0.15 and increments failed", () => {
     const r = applyOutcome(base, { success: false, latencyMs: 2000 });
     expect(r.failedTasks).toBe(7);
-    expect(r.rating).toBe(4.6);
+    expect(r.rating).toBe(4.65);
+  });
+
+  it("soft cap: success gain is 0.005 above 4.95", () => {
+    const r = applyOutcome(
+      { ...base, rating: 4.96 },
+      { success: true, latencyMs: 100 }
+    );
+    expect(r.rating).toBe(4.97);
+    const boundary = applyOutcome(
+      { ...base, rating: 4.95 },
+      { success: true, latencyMs: 100 }
+    );
+    expect(boundary.rating).toBe(4.96);
   });
 
   it("clamps rating at 5 and 0", () => {
