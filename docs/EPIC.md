@@ -96,31 +96,13 @@ Each block ends in a state you can run locally (`pnpm dev`) and test. "Test" col
 - Run the Tokyo prompt in the browser and watch all six panels update live
 - Refresh mid-run → state reconstructs from replay
 
-### Block 5 — Economy feedback + villain polish
-**Build**
-- Reputation visibly changes scores between runs (show delta on agent cards)
-- Villain denial is deterministic, shows the request, the envelope, and the rule that denied it
-- Agent profile drawer: wallet, reputation history, last N tasks
-- Marketplace page `/market` with all agents and live balances
-
-**Test**
-- Run twice; second run's candidate scores differ and the UI says why
-- Villain event appears every run
-
-### Block 6 — Demo polish + Vercel deploy
-**Build**
-- **TODO (deferred by user): create GitHub repo, add remote, push `main`** — prerequisite for Vercel Git integration. Repo is local-only until then.
-- Transitions/animations on pipeline and ledger; artificial 300–800ms pacing between stages (env-configurable, off in tests)
-- Reset button (calls `/api/admin/reset`)
-- Neon project + `DATABASE_URL` in Vercel env; `pnpm db:push` and seed against Neon; deploy
-- README with pitch, architecture, protocol, run instructions
-
-**Test**
-- Deployed URL runs the full Tokyo demo in < 45s
-- Reset → run → reset works repeatedly on prod
-
-### Block 7 — Visual polish: make it look like a product  `[added by user request — judging weighs looks heavily]`
+### Block 5 — Visual polish: make it look like a product  `[reordered before deploy — judging weighs looks heavily]`
 Goal: a judge glancing at the screen for 5 seconds should understand "agents are hiring agents" without narration. Every panel earns its place by being legible from 3 metres.
+
+Absorbs the remaining items of the old "economy feedback" block (reputation deltas and legible villain denial shipped in Block 4):
+- Agent profile drawer (click any agent anywhere): profile JSON, wallet, reputation, last N tasks
+- `/market` shows live balances and reputation deltas vs seed
+- Candidate cards show score delta vs the previous run for the same capability ("+0.002 since last run")
 
 **Direction**
 - One visual language: dark canvas (zinc-950), card surfaces with 1px hairline borders and subtle inner glow; a single display font for numbers (tabular, mono) so balances/scores align; a 4-colour semantic system used everywhere — indigo = orchestrator, emerald = money/success, red = denial/failure, amber = in-progress/redaction.
@@ -144,12 +126,23 @@ Goal: a judge glancing at the screen for 5 seconds should understand "agents are
 - Run 3× in a row: animations never stack or jank; toast fires exactly once per denial
 - `prefers-reduced-motion` → no motion but identical information
 
-### Block 8 — Stretch (only if ahead)
+### Block 6 — Vercel deploy
+**Build**
+- **TODO (deferred by user): create GitHub repo, add remote, push `main`** — prerequisite for Vercel Git integration. Repo is local-only until then.
+- Neon project + `DATABASE_URL` in Vercel env; `pnpm db:push` and seed against Neon; deploy
+- `ANTHROPIC_API_KEY` in Vercel env; smoke-test the LLM path on prod
+- README with pitch, architecture, protocol, run instructions
+
+**Test**
+- Deployed URL runs the full Tokyo demo in < 45s
+- Reset → run → reset works repeatedly on prod
+
+### Block 7 — Stretch (only if ahead)
 - Worker failure → orchestrator re-hires runner-up; failed agent's reputation drops
 - Second objective (e.g. competitor research) to prove generality
 - Negotiation stub: worker may counter-offer price within ±20%
 
-### Block 9 — Rehearsal
+### Block 8 — Rehearsal
 - Run the demo 5× on prod, record a backup video, finalize pitch
 
 ---
