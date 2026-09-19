@@ -1,88 +1,111 @@
-import Link from "next/link";
-import { listAgents } from "@/marketplace/registry";
+"use client";
 
-export const dynamic = "force-dynamic";
+import { useState } from "react";
+import { Nav } from "@/components/Nav";
+import { Pipeline } from "@/components/Pipeline";
+import { Candidates } from "@/components/Candidates";
+import { MessageLog } from "@/components/MessageLog";
+import { Ledger } from "@/components/Ledger";
+import { PermissionLog } from "@/components/PermissionLog";
+import { Reputation } from "@/components/Reputation";
+import { Itinerary } from "@/components/Itinerary";
+import { useRun } from "@/lib/use-run";
 
-function Chip({ children, color }: { children: string; color?: string }) {
-  return (
-    <span
-      className={`inline-block rounded px-1.5 py-0.5 text-xs font-mono mr-1 mb-1 ${
-        color ?? "bg-zinc-800 text-zinc-300"
-      }`}
-    >
-      {children}
-    </span>
+export default function DemoPage() {
+  const { state, start, reset, replaying, agents, wallets } = useRun();
+  const [objective, setObjective] = useState(
+    "Plan a 4-day trip to Tokyo under €1,200."
   );
-}
+  const [budget, setBudget] = useState("2");
 
-export default async function Home() {
-  const agents = await listAgents();
+  const canRun =
+    state.stage === "idle" ||
+    state.stage === "completed" ||
+    state.stage === "failed";
+  const runStartTs = state.messages[0]?.ts;
+
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 p-8">
-      <header className="mb-8 flex items-baseline justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Bazaar — Agent Marketplace</h1>
-          <p className="text-zinc-500 font-mono text-sm mt-1">amp/0.1</p>
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 p-6">
+      <Nav />
+
+      {/* Objective bar */}
+      <div className="flex gap-2 items-center mb-5 flex-wrap">
+        <input
+          value={objective}
+          onChange={(e) => setObjective(e.target.value)}
+          className="flex-1 min-w-64 bg-zinc-900 border border-zinc-800 rounded px-3 py-2 text-sm"
+          placeholder="Describe the trip…"
+        />
+        <div className="flex items-center gap-1">
+          <input
+            type="number"
+            step="0.5"
+            min="0"
+            value={budget}
+            onChange={(e) => setBudget(e.target.value)}
+            className="w-20 bg-zinc-900 border border-zinc-800 rounded px-2 py-2 text-sm font-mono"
+          />
+          <span className="text-xs text-zinc-500">credits</span>
         </div>
-        <Link href="/dev" className="text-indigo-400 text-sm hover:underline">
-          Dev Console →
-        </Link>
-      </header>
-      <table className="w-full text-sm border-collapse">
-        <thead>
-          <tr className="text-left text-zinc-500 border-b border-zinc-800">
-            <th className="py-2 pr-4 font-medium">Name</th>
-            <th className="py-2 pr-4 font-medium">Capabilities</th>
-            <th className="py-2 pr-4 font-medium">Price</th>
-            <th className="py-2 pr-4 font-medium">Rating</th>
-            <th className="py-2 pr-4 font-medium">Success</th>
-            <th className="py-2 pr-4 font-medium">Tasks</th>
-            <th className="py-2 pr-4 font-medium">Latency</th>
-            <th className="py-2 font-medium">Permissions required</th>
-          </tr>
-        </thead>
-        <tbody>
-          {agents.map((a) => (
-            <tr key={a.id} className="border-b border-zinc-900 align-top">
-              <td className="py-3 pr-4">
-                <div className="font-medium">{a.name}</div>
-                <div className="text-zinc-600 font-mono text-xs">{a.id}</div>
-              </td>
-              <td className="py-3 pr-4">
-                {a.capabilities.map((c) => (
-                  <Chip key={c} color="bg-indigo-950 text-indigo-300">
-                    {c}
-                  </Chip>
-                ))}
-              </td>
-              <td className="py-3 pr-4 font-mono">
-                {a.pricing.amount.toFixed(2)}
-              </td>
-              <td className="py-3 pr-4 font-mono">
-                {a.reputation.rating.toFixed(1)}
-              </td>
-              <td className="py-3 pr-4 font-mono">
-                {(a.reputation.success_rate * 100).toFixed(0)}%
-              </td>
-              <td className="py-3 pr-4 font-mono">
-                {a.reputation.completed_tasks}
-              </td>
-              <td className="py-3 pr-4 font-mono">{a.latency_ms_p50}ms</td>
-              <td className="py-3">
-                {a.permissions_required.length === 0 ? (
-                  <span className="text-zinc-600 text-xs">none</span>
-                ) : (
-                  a.permissions_required.map((p) => (
-                    <Chip key={p} color="bg-amber-950 text-amber-300">
-                      {p}
-                    </Chip>
-                  ))
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+        <button
+          onClick={() => start(objective, Number(budget))}
+          disabled={!canRun}
+          className="rounded bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-700 px-5 py-2 text-sm font-medium"
+        >
+          {canRun ? "Run" : "Running…"}
+        </button>
+        <button
+          onClick={reset}
+          className="rounded border border-zinc-700 hover:border-zinc-500 px-4 py-2 text-sm"
+        >
+          Reset
+        </button>
+        {state.planSource && (
+          <span
+            className={`rounded px-2 py-1 text-xs font-mono ${
+              state.planSource === "llm"
+                ? "bg-indigo-900 text-indigo-300"
+                : "bg-zinc-800 text-zinc-400"
+            }`}
+          >
+            {state.planSource === "llm" ? "LLM plan" : "fallback plan"}
+          </span>
+        )}
+        {replaying && (
+          <span className="text-xs text-amber-400 font-mono">replaying…</span>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-[280px_1fr_360px] gap-4">
+        {/* Left: pipeline */}
+        <div>
+          <Pipeline state={state} />
+        </div>
+
+        {/* Center: candidates + messages */}
+        <div className="flex flex-col gap-4 min-w-0">
+          <Candidates state={state} agents={agents} />
+          <MessageLog
+            messages={state.messages}
+            agents={agents}
+            runStartTs={runStartTs}
+          />
+        </div>
+
+        {/* Right: ledger / permissions / reputation */}
+        <div className="flex flex-col gap-4">
+          <Ledger
+            orchestratorBalance={wallets.orchestrator}
+            transfers={state.transfers}
+            spent={state.spent}
+          />
+          <PermissionLog permissions={state.permissions} agents={agents} />
+          <Reputation reputation={state.reputation} agents={agents} />
+        </div>
+      </div>
+
+      {/* Bottom: itinerary */}
+      <Itinerary result={state.result} />
     </div>
   );
 }

@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { PERMISSIONS, type AgentProfile } from "@/protocol";
+import { Nav } from "@/components/Nav";
 import { parseSseStream } from "@/lib/sse-client";
 
 type Wallet = { agent_id: string; name: string; balance: number };
@@ -337,17 +337,8 @@ export default function DevConsole() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 p-8">
-      <header className="mb-6 flex items-baseline justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Dev Console</h1>
-          <p className="text-zinc-500 font-mono text-sm mt-1">
-            Bazaar — amp/0.1
-          </p>
-        </div>
-        <Link href="/" className="text-indigo-400 text-sm hover:underline">
-          Marketplace →
-        </Link>
-      </header>
+      <Nav />
+      <h1 className="text-2xl font-bold mb-4">Dev Console</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="flex flex-col gap-4">

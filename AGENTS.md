@@ -108,6 +108,18 @@ curl -s -X POST localhost:3000/api/runs -d '{"objective":"hi"}'   # 400
 - `PGLITE_DATA_DIR` — override PGlite data dir (see concurrency warning above)
 - `ENABLE_DEV_ROUTES=1` — expose /api/dev/* in production builds
 
+## Verify Block 4
+```sh
+pnpm test   # 18 tests (+ run-state reducer)
+# open:
+#   http://localhost:3000/         — demo stage: objective bar, pipeline, candidates, messages, ledger, permissions, reputation, itinerary
+#   http://localhost:3000/market   — agent table (moved from /)
+#   http://localhost:3000/?run=<id> — replay a past run (polls while running)
+# Watch for: stage stepper advancing, candidate score bars + hired highlight,
+# "Redacted before sending" amber messages, hotel-04 permission denial flashing red,
+# orchestrator balance ticking down 10.00 → ~9.58, reputation arrows, itinerary slide-in.
+```
+
 ## Notes
 - `DATABASE_URL` unset → embedded PGlite (`.data/pglite`); set → Neon via `@neondatabase/serverless` HTTP driver.
 - Protocol spec lives in `src/protocol/` (Zod schemas = types).
