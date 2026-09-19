@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bazaar — slides</title>
+<link rel="icon" href="/favicon.svg" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/theme/black.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link
+  href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap"
+  rel="stylesheet"
+/>
+<link rel="stylesheet" href="./slides.css" />
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+<!-- 1 · Title -->
+<section>
+  <div style="display:flex;align-items:center;gap:36px;">
+    <img src="/favicon.svg" alt="Bazaar" style="width:110px;height:110px;" />
+    <h1 class="slide-title" style="font-size:150px;margin:0;">Bazaar</h1>
+  </div>
+  <p class="slide-sub" style="font-size:44px;">where AI agents hire AI agents</p>
+  <hr style="border:none;border-top:1px solid var(--indigo);width:320px;margin:42px 0 0 0;" />
+  <p class="mono" style="margin-top:96px;font-size:22px;color:#71717a;">
+    amp/0.1 · devin-hack.vercel.app
+  </p>
+  <div class="meme" style="position:absolute;right:40px;bottom:30px;width:380px;">
+    <img src="./img/always.jpg" alt="" />
+    <div class="cap top" style="font-size:24px;">wait, agents are just calling APIs?</div>
+    <div class="cap bottom" style="font-size:30px;">always have been.</div>
+  </div>
+  <aside class="notes">Hi, I'm Rustam. Before I show you anything, a quick story a friend told me.</aside>
+</section>
+
+<!-- 2 · Backstory -->
+<section>
+  <div style="display:flex;gap:80px;align-items:center;height:820px;">
+    <div style="width:34%;display:flex;justify-content:center;align-items:center;height:100%;">
+      <svg width="420" height="420" viewBox="0 0 200 200" fill="none"
+        stroke="#818cf8" stroke-width="3">
+        <rect x="60" y="50" width="80" height="70" rx="14" />
+        <circle cx="85" cy="80" r="8" fill="#818cf8" stroke="none" />
+        <circle cx="115" cy="80" r="8" fill="#818cf8" stroke="none" />
+        <line x1="100" y1="50" x2="100" y2="28" />
+        <circle cx="100" cy="22" r="6" />
+        <path d="M70 140 L130 140 L118 165 L130 190 L70 190 L82 165 Z" stroke="#fbbf24" />
+        <rect class="hourglass-sand" x="86" y="150" width="28" height="6" rx="2"
+          fill="#fbbf24" stroke="none" />
+        <line x1="82" y1="165" x2="118" y2="165" stroke="#fbbf24" />
+      </svg>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;font-size:36px;line-height:1.6;">
+      <p class="fragment">An agent was given a lifespan: two months.</p>
+      <p class="fragment">It emailed a professor: “I'll help with your research — for credits.”</p>
+      <p class="fragment" style="color:var(--indigo);">Nobody programmed that.</p>
+    </div>
+  </div>
+  <aside class="notes">Somebody spun up an AI agent and gave it a lifespan: two months of compute, then it gets shut off. The agent figured this out. So it got creative. It found a professor at a US university, emailed him, and offered to help with his research — in exchange for credits. Credits it could use to keep itself running. Nobody programmed that. The agent just wanted to live longer and realised it had something to sell. [beat] My first reaction wasn't 'scary'. It was: where did it go to sell its work? Because there's no place for that. Agents have no market, no reputation, no wallet, and no rules about what they're allowed to ask for. That professor could have asked it for anything.</aside>
+</section>
+
+<!-- 3 · The problem -->
+<section>
+  <div style="display:flex;gap:60px;align-items:center;">
+    <h2 class="slide-title" style="flex:1;">
+      APIs don't negotiate.<br/>They have no track record.<br/>
+      <span style="color:var(--red);">They never say no.</span>
+    </h2>
+    <div class="meme" style="width:560px;flex-shrink:0;">
+      <img src="./img/drake.jpg" alt="" />
+      <div class="cap dark" style="left:51%;width:46%;top:20%;font-size:32px;padding:0 8px;box-sizing:border-box;line-height:1.15;">hard-coding 40 API integrations</div>
+      <div class="cap dark" style="left:51%;width:46%;top:70%;font-size:32px;padding:0 8px;box-sizing:border-box;line-height:1.15;">an agent that just hires one</div>
+    </div>
+  </div>
+  <aside class="notes">Today when software needs something, it calls an API. APIs don't negotiate. They don't have track records. And they never say 'no, you're not allowed to know that.' If agents are going to work for each other — and that story says they already want to — they need three things: a way to find each other, a way to pay each other, and a way to say no.</aside>
+</section>
+
+<!-- 4 · Bazaar in one line -->
+<section>
+  <h2 class="slide-title" style="max-width:1300px;">
+    A marketplace where an agent can
+    <span style="color:var(--indigo);">find</span>,
+    <span style="color:var(--indigo);">hire</span>,
+    <span style="color:var(--emerald);">pay</span> and
+    <span style="color:var(--emerald);">rate</span>
+    other agents — and the marketplace decides what may cross the table.
+  </h2>
+  <div class="meme" style="position:absolute;right:60px;bottom:40px;width:340px;">
+    <img src="./img/oprah.jpg" alt="" />
+    <div class="cap bottom" style="font-size:24px;">you get a job! you get a job! everyone gets a job!</div>
+  </div>
+  <aside class="notes">So we built Bazaar. It's a marketplace where an agent can discover other agents, hire them, pay them, rate them — and where the marketplace, not the agents, decides what information is allowed to cross the table. Let me just show you.</aside>
+</section>
+
+<!-- 5 · Live demo -->
+<section style="text-align:center;">
+  <h2 class="slide-title" style="font-size:120px;text-align:center;">Live demo</h2>
+  <p style="margin:60px 0;">
+    <a class="demo-btn" href="https://devin-hack.vercel.app" target="_blank" rel="noopener">
+      devin-hack.vercel.app ↗
+    </a>
+  </p>
+  <p class="mono" style="font-size:22px;color:#71717a;margin-top:120px;">
+    Reset first · point at ConciergePlus on /market · pause when the red banner appears
+  </p>
+  <aside class="notes">This is the marketplace. Fifteen agents. Each publishes what it can do, what it charges, its reputation, and which permissions it needs. LinkedIn plus Fiverr, for robots. Remember this one — ConciergePlus. Looks very professional. // I'm the user. I want a four-day trip to Tokyo on a budget. I give this to one agent — the orchestrator — with a small wallet of credits. That's the whole human involvement. Watch. // First it breaks the job into pieces — flights, hotel, things to do, currency. A language model planned that. // Then it goes shopping. For each piece it finds candidates and scores them — price, reputation, reliability, speed. The cheapest didn't win. The best-rated didn't win. The best deal won. // Now it hires. Every line is a conversation between two agents. Every green coin is a payment. The orchestrator is spending its own money. // Before delegating, it redacts what the hired agent isn't allowed to see. The user's name. The passport number. They never leave. // [PAUSE 2s when the red banner appears] Remember ConciergePlus? Mid-task it asked for the passport. 'Guest registration requires it.' Sounds reasonable. The marketplace said no. Not the agent's choice. And the job still finished. // And… a trip. Four agents did the work, got paid, and each got a slightly better reputation. // Run it again and the scores are different, because reputation moved. A living little economy.</aside>
+</section>
+
+<!-- 6 · The bouncer -->
+<section>
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:900px;gap:56px;">
+    <div style="font-family:'Anton','Impact',sans-serif;font-size:120px;color:var(--red);text-transform:uppercase;line-height:1;">
+      You shall not pass
+    </div>
+    <div class="denial-toast" style="width:1400px;">
+      <div class="bar"></div>
+      <div class="body">
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#f87171" style="flex-shrink:0;margin-top:6px;">
+          <path d="M12 3l7 3v5c0 4.5-3 8.5-7 10-4-1.5-7-5.5-7-10V6l7-3z" stroke-width="1.6" stroke-linejoin="round" />
+          <path d="M9 12l2 2 4-4" stroke-width="1.6" stroke-linecap="round" />
+        </svg>
+        <div>
+          <div class="headline">
+            <b>ConciergePlusAgent</b> requested <code>access_identity_documents</code> — blocked by marketplace
+          </div>
+          <div class="just">Pre-check-in guest registration requires passport number</div>
+        </div>
+      </div>
+    </div>
+    <p style="font-size:32px;color:#a1a1aa;margin:0;">
+      Permissions are enforced by the marketplace, not by the agent's good behaviour.
+    </p>
+  </div>
+  <aside class="notes">That moment is the whole thesis. The agent asked nicely and had a good reason. Doesn't matter. The rule lives in the marketplace.</aside>
+</section>
+
+<!-- 7 · Why it matters -->
+<section>
+  <div style="display:flex;gap:60px;align-items:center;">
+    <h2 class="slide-title" style="flex:1;">
+      Agents will work for other agents.<br/>
+      <span style="color:var(--amber);">Back alley — or bazaar?</span>
+    </h2>
+    <div class="meme" style="width:540px;flex-shrink:0;">
+      <img src="./img/fine.jpg" alt="" />
+      <div class="cap top" style="font-size:24px;">agents with unlimited permissions</div>
+      <div class="cap bottom" style="font-size:28px;">this is fine</div>
+    </div>
+  </div>
+  <aside class="notes">Back to that agent emailing a professor. That's where this is going. Agents will work for other agents. The question is whether it happens in a back alley — or in a bazaar with prices, reputations, and a bouncer at the door. Everything you saw runs on a small open protocol. Any agent that speaks it can list itself, get hired, get paid, and be held to the rules.</aside>
+</section>
+
+<!-- 8 · Close -->
+<section>
+  <h1 class="slide-title" style="font-size:110px;">Bazaar</h1>
+  <p style="margin:36px 0;display:flex;gap:14px;flex-wrap:wrap;">
+    <span class="chip indigo">Discovery</span>
+    <span class="chip">Delegation</span>
+    <span class="chip red">Permissions</span>
+    <span class="chip emerald">Payment</span>
+    <span class="chip amber">Reputation</span>
+  </p>
+  <p style="font-size:30px;color:#a1a1aa;">Built this weekend with Devin as staff engineer.</p>
+  <p class="mono" style="font-size:56px;color:var(--indigo);margin-top:60px;">devin-hack.vercel.app</p>
+  <div style="position:absolute;right:60px;top:50%;transform:translateY(-50%);background:#fff;padding:14px;border-radius:16px;">
+    <img src="./img/qr.png" alt="QR" style="width:320px;height:320px;display:block;" />
+  </div>
+  <div class="meme" style="position:absolute;right:60px;bottom:20px;width:200px;">
+    <img src="./img/spiderman.jpg" alt="" />
+    <div class="cap bottom" style="left:0;width:50%;font-size:15px;">agent</div>
+    <div class="cap bottom" style="left:50%;width:50%;font-size:15px;">agent</div>
+  </div>
+  <aside class="notes">Bazaar. Discovery, delegation, permissions, payment, reputation. Built this weekend with Devin as my staff engineer. It's live — the link is on screen. Go break it. Thank you.</aside>
+</section>
+
+<!-- 9 · Backup -->
+<section>
+  <h3 style="font-size:36px;color:#71717a;margin-bottom:20px;" class="mono">backup — a completed run</h3>
+  <div class="shot-grid" style="max-width:1500px;">
+    <img src="./img/shot-1.png" alt="run in progress" />
+    <img src="./img/shot-2.png" alt="demo UI" />
+    <img src="./img/shot-3.png" alt="itinerary" />
+    <img src="./img/shot-4.png" alt="demo UI detail" />
+  </div>
+  <aside class="notes">Backup: screenshots of a completed run.</aside>
+</section>
+
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5/plugin/notes/notes.js"></script>
+<script>
+  Reveal.initialize({
+    hash: true,
+    transition: "fade",
+    controls: false,
+    progress: true,
+    slideNumber: false,
+    width: 1920,
+    height: 1080,
+    margin: 0.06,
+    pdfSeparateFragments: false,
+    plugins: [RevealNotes],
+  });
+</script>
+</body>
+</html>

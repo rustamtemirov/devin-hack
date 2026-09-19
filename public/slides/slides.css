@@ -1,0 +1,190 @@
+:root {
+  --surface: #0b0b0f;
+  --card: #111116;
+  --hairline: rgba(255, 255, 255, 0.07);
+  --indigo: #818cf8;
+  --emerald: #34d399;
+  --red: #f87171;
+  --amber: #fbbf24;
+}
+
+.reveal {
+  font-family: "Inter", system-ui, sans-serif;
+  color: #f4f4f5;
+}
+.reveal-viewport {
+  background: var(--surface);
+}
+.reveal .progress {
+  color: var(--indigo);
+  height: 4px;
+}
+.reveal h1, .reveal h2, .reveal h3 {
+  font-family: "Inter", system-ui, sans-serif;
+  text-transform: none;
+  letter-spacing: -0.02em;
+  color: #f4f4f5;
+}
+.reveal section {
+  text-align: left;
+}
+
+.mono {
+  font-family: "JetBrains Mono", monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.slide-title {
+  font-size: 76px;
+  font-weight: 800;
+  line-height: 1.05;
+}
+.slide-sub {
+  font-size: 34px;
+  color: #a1a1aa;
+  margin-top: 18px;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--hairline);
+  border-radius: 16px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.chip {
+  display: inline-block;
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-size: 26px;
+  font-family: "JetBrains Mono", monospace;
+  color: #d4d4d8;
+  background: var(--card);
+}
+.chip.indigo { color: var(--indigo); }
+.chip.emerald { color: var(--emerald); }
+.chip.red { color: var(--red); }
+.chip.amber { color: var(--amber); }
+
+.meme {
+  position: relative;
+  display: inline-block;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+}
+.meme img { display: block; width: 100%; }
+.meme .cap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  padding: 6px 10px;
+  font-family: "Anton", "Impact", sans-serif;
+  text-transform: uppercase;
+  color: #fff;
+  text-align: center;
+  -webkit-text-stroke: 1.5px #000;
+  text-shadow: 0 2px 4px rgba(0,0,0,.8);
+  line-height: 1.05;
+  pointer-events: none;
+}
+.meme .cap.top { top: 4%; }
+.meme .cap.bottom { bottom: 4%; }
+.meme .cap.half { left: 50%; width: 50%; }
+
+.meme-card {
+  position: relative;
+  background: var(--card);
+  border: 1px solid var(--hairline);
+  border-radius: 16px;
+  padding: 60px 50px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+.meme-card .cap {
+  font-family: "Anton", "Impact", sans-serif;
+  text-transform: uppercase;
+  color: #fff;
+  font-size: 84px;
+  line-height: 1.05;
+}
+.meme-card .sub {
+  font-family: "JetBrains Mono", monospace;
+  color: #71717a;
+  font-size: 22px;
+  margin-top: 18px;
+}
+
+/* Drake: black captions inside the white panels */
+.meme .cap.dark {
+  color: #111;
+  -webkit-text-stroke: 0;
+  text-shadow: none;
+}
+
+/* scaled-up denial toast (slide 6) */
+.denial-toast {
+  display: flex;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  background: var(--card);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+.denial-toast .bar {
+  width: 8px;
+  flex-shrink: 0;
+  background: #ef4444;
+}
+.denial-toast .body {
+  display: flex;
+  gap: 22px;
+  align-items: flex-start;
+  padding: 28px 32px;
+}
+.denial-toast .headline {
+  font-size: 48px;
+  color: #f4f4f5;
+  line-height: 1.2;
+}
+.denial-toast .headline code {
+  font-family: "JetBrains Mono", monospace;
+  color: var(--red);
+}
+.denial-toast .just {
+  font-size: 26px;
+  color: #71717a;
+  margin-top: 10px;
+}
+
+@keyframes sandslide {
+  0% { transform: translateY(-14px); }
+  50% { transform: translateY(14px); }
+  100% { transform: translateY(-14px); }
+}
+.hourglass-sand {
+  animation: sandslide 4s ease-in-out infinite;
+}
+
+.demo-btn {
+  display: inline-block;
+  font-size: 40px;
+  font-weight: 700;
+  background: #4f46e5;
+  color: #fff;
+  border-radius: 14px;
+  padding: 22px 54px;
+  text-decoration: none;
+}
+.demo-btn:hover { background: #6366f1; }
+
+.shot-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+.shot-grid img {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--hairline);
+}
