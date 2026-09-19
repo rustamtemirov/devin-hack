@@ -1,4 +1,4 @@
-import { asc, eq, inArray } from "drizzle-orm";
+import { asc, desc, eq, inArray } from "drizzle-orm";
 import { db } from "@/db/client";
 import { runs, tasks, transactions, permissionEvents, events } from "@/db/schema";
 import type { MarketplaceEvent } from "@/protocol";
@@ -40,6 +40,14 @@ export async function updateRun(
     .where(eq(runs.id, id))
     .returning();
   return run ?? null;
+}
+
+export async function listRuns(limit = 20): Promise<Run[]> {
+  return db
+    .select()
+    .from(runs)
+    .orderBy(desc(runs.createdAt))
+    .limit(limit);
 }
 
 export async function getRunDetail(id: string): Promise<null | {

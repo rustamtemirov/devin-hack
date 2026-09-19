@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { PERMISSIONS, type AgentProfile } from "@/protocol";
+import { parseSseStream } from "@/lib/sse-client";
 
 type Wallet = { agent_id: string; name: string; balance: number };
 type Txn = {
@@ -119,6 +120,27 @@ export default function DevConsole() {
   );
   const [dBudget, setDBudget] = useState("0.5");
   const [dResp, setDResp] = useState<unknown>();
+
+  const [objective, setObjective] = useState(
+    "Plan a 4-day trip to Tokyo under €1,200."
+  );
+  const [runBudget, setRunBudget] = useState("2");
+  const [running, setRunning] = useState(false);
+  const [runEvents, setRunEvents] = useState<{ type: string; data: unknown }[]>(
+    []
+  );
+  const [runResult, setRunResult] = useState<{
+    itinerary_markdown?: string;
+    total_cost_credits?: number;
+    hires?: {
+      agent_id: string;
+      agent_name: string;
+      capability: string;
+      price: number;
+      status: string;
+    }[];
+  } | null>(null);
+  const eventsEndRef = useRef<HTMLDivElement | null>(null);
 
   const prevBalances = useRef<Map<string, number>>(new Map());
   const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -245,6 +267,43 @@ export default function DevConsole() {
     await refreshState();
   };
 
+  const doRun = async () => {
+    setRunning(true);
+    setRunEvents([]);
+    setRunResult(null);
+    try {
+      const res = await fetch("/api/runs", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ objective, budget: Number(runBudget) }),
+      });
+      if (!res.ok || !res.body) {
+        const data = await res.json().catch(() => ({}));
+        setRunEvents([
+          { type: "error", data: data ?? { status: res.status } },
+        ]);
+        return;
+      }
+      const id = res.headers.get("x-run-id");
+      if (id) setRunId(id);
+      await parseSseStream(res.body, (type, data) => {
+        setRunEvents((prev) => [...prev, { type, data }]);
+        if (type === "run.completed") {
+          const r = (data as { result?: typeof runResult }).result;
+          setRunResult(r ?? null);
+        }
+      });
+      if (id) await refreshRun(id);
+      await refreshState();
+    } finally {
+      setRunning(false);
+    }
+  };
+
+  useEffect(() => {
+    eventsEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [runEvents.length]);
+
   const workersForCapability = agents.filter((a) =>
     a.capabilities.includes(capability)
   );
@@ -292,6 +351,110 @@ export default function DevConsole() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="flex flex-col gap-4">
+          <Panel title="Run">
+            <label className="block text-xs text-zinc-500 mb-1">
+              objective
+            </label>
+            <textarea
+              value={objective}
+              onChange={(e) => setObjective(e.target.value)}
+              rows={2}
+              className="w-full bg-zinc-800 rounded px-2 py-1 text-sm"
+            />
+            <div className="flex gap-2 items-center mt-2">
+              <input
+                type="number"
+                step="0.1"
+                value={runBudget}
+                onChange={(e) => setRunBudget(e.target.value)}
+                className="bg-zinc-800 rounded px-2 py-1 text-sm w-24"
+                title="budget credits"
+              />
+              <button
+                onClick={doRun}
+                disabled={running}
+                className="rounded bg-green-700 hover:bg-green-600 disabled:bg-zinc-700 px-3 py-1.5 text-sm"
+              >
+                {running ? "Running…" : "Run"}
+              </button>
+            </div>
+            {runEvents.length > 0 && (
+              <div className="mt-3 max-h-80 overflow-auto rounded bg-zinc-950 p-2 flex flex-col gap-1">
+                {runEvents.map((e, i) => (
+                  <div key={i} className="font-mono text-xs">
+                    <span
+                      className={`rounded px-1.5 py-0.5 mr-1 ${
+                        e.type === "run.failed" ||
+                        (e.type === "permission.checked" &&
+                          (e.data as { decision?: string }).decision ===
+                            "denied")
+                          ? "bg-red-900 text-red-300"
+                          : e.type === "run.completed"
+                            ? "bg-green-900 text-green-300"
+                            : "bg-zinc-800 text-zinc-300"
+                      }`}
+                    >
+                      {e.type}
+                    </span>
+                    <span className="text-zinc-500">
+                      {JSON.stringify(
+                        typeof e.data === "object" && e.data !== null
+                          ? Object.fromEntries(
+                              Object.entries(
+                                e.data as Record<string, unknown>
+                              ).filter(
+                                ([k]) => !["run_id", "ts"].includes(k)
+                              )
+                            )
+                          : e.data
+                      ).slice(0, 220)}
+                    </span>
+                  </div>
+                ))}
+                <div ref={eventsEndRef} />
+              </div>
+            )}
+            {runResult && (
+              <div className="mt-3">
+                <div className="text-xs text-zinc-500 mb-1">
+                  total cost:{" "}
+                  <span className="text-zinc-200 font-mono">
+                    {runResult.total_cost_credits} credits
+                  </span>
+                </div>
+                {runResult.hires && (
+                  <table className="w-full text-xs mb-2">
+                    <thead>
+                      <tr className="text-left text-zinc-500 border-b border-zinc-800">
+                        <th className="py-1 font-medium">Agent</th>
+                        <th className="py-1 font-medium">Capability</th>
+                        <th className="py-1 font-medium text-right">Price</th>
+                        <th className="py-1 font-medium">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {runResult.hires.map((h, i) => (
+                        <tr key={i} className="border-b border-zinc-900">
+                          <td className="py-1 font-mono">{h.agent_id}</td>
+                          <td className="py-1">{h.capability}</td>
+                          <td className="py-1 text-right font-mono">
+                            {h.price.toFixed(2)}
+                          </td>
+                          <td className="py-1">{h.status}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+                {runResult.itinerary_markdown && (
+                  <pre className="whitespace-pre-wrap rounded bg-zinc-950 p-3 text-xs text-zinc-300 max-h-96 overflow-auto">
+                    {runResult.itinerary_markdown}
+                  </pre>
+                )}
+              </div>
+            )}
+          </Panel>
+
           <Panel title="Reset">
             <button
               onClick={doReset}

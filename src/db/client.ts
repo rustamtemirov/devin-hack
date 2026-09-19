@@ -45,7 +45,7 @@ function getDb(): Db {
 // loads route modules in worker processes (e.g. static-paths-worker) that must
 // never open the data dir — only a process that actually queries does.
 export const db: Db = new Proxy({} as Db, {
-  get(_t, prop, _r) {
+  get(_t, prop) {
     const real = getDb();
     const v = Reflect.get(real, prop, real);
     return typeof v === "function" ? v.bind(real) : v;

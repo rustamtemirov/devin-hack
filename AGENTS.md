@@ -85,6 +85,29 @@ PGLITE_DATA_DIR=/tmp/bazaar-test pnpm dev -p 3100   # run dev against scratch DB
 PGlite has **no file lock**. Running `pnpm db:seed` (or `db:push`) against a data dir while `pnpm dev` is using it does NOT fail or hang — the second process reports success, but the two instances diverge (the dev server keeps serving its own view) and the on-disk dir is corrupted: the next process to open it crashes with `RuntimeError: Aborted()`. Recovery: `rm -rf <dir> && pnpm db:push && pnpm db:seed`. Always stop the dev server before db scripts on `.data`, or use separate `PGLITE_DATA_DIR`s.
 The dev server now closes PGlite cleanly on SIGINT/SIGTERM (see `src/db/client.ts`), and DB instantiation is lazy so Next worker processes never open the data dir.
 
+## Verify Block 3
+```sh
+# streaming orchestrated run (SSE); needs a dev server, e.g.:
+STAGE_DELAY_MS=200 pnpm dev
+curl -sN -X POST localhost:3000/api/runs -H 'content-type: application/json' \
+  -d '{"objective":"Plan a 4-day trip to Tokyo under €1,200.","budget":2}'
+# → SSE frames: run.created → run.started → run.decomposed → market.searched/evaluated ×4
+#   → task.status/agent.message/agent.hired/permission.checked/ledger.transfer/reputation.updated
+#   → run.completed with itinerary_markdown. Persists everything.
+curl -s localhost:3000/api/runs | jq '.runs[0]'      # newest first
+curl -s localhost:3000/api/runs/<run_id>             # full detail (tasks, txns, permission_events, events)
+curl -s -X POST localhost:3000/api/runs -d '{"objective":"hi"}'   # 400
+# /dev "Run" panel streams the same events live.
+```
+
+### Env vars
+- `ANTHROPIC_API_KEY` — unset → deterministic fallback plan + template itinerary (fully works)
+- `ANTHROPIC_MODEL` — default `claude-sonnet-4-5`
+- `STAGE_DELAY_MS` — pacing between orchestration stages, default 600, `0` disables
+- `AGENT_LATENCY_SCALE` — scales agent sleeps, default 0.3, `0` disables
+- `PGLITE_DATA_DIR` — override PGlite data dir (see concurrency warning above)
+- `ENABLE_DEV_ROUTES=1` — expose /api/dev/* in production builds
+
 ## Notes
 - `DATABASE_URL` unset → embedded PGlite (`.data/pglite`); set → Neon via `@neondatabase/serverless` HTTP driver.
 - Protocol spec lives in `src/protocol/` (Zod schemas = types).
